@@ -99,6 +99,17 @@ class CaptureThumbnail(QWidget):
     def setPixmap(self, pixmap):
         self._pixmap = pixmap
         self.update()
+        
+    def savePixmap(self, path=None, size=256):
+        if self._pixmap:
+            if path is None:
+                path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Capture", "", "JPEG Files (*.jpg);;PNG Files (*.png)")
+            
+            if not os.path.exists(os.path.dirname(path)):
+                os.makedirs(os.path.dirname(path))
+                
+            pixmap = self._pixmap.scaled(size, size, mode=Qt.SmoothTransformation)
+            pixmap.save(path)
 
 class TestMainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
@@ -123,15 +134,22 @@ class TestMainWindow(QtWidgets.QMainWindow):
         self._capture_label.setFixedSize(256, 256)
         self._layout.addWidget(self._capture_label)
         
-        self._capture_button = QtWidgets.QPushButton("Capture Active View", self)
+        self._capture_button = QtWidgets.QPushButton("Capture Active View")
         self._capture_button.setFixedHeight(30)
-        self._capture_button.clicked.connect(self._on_button_clicked)
+        self._capture_button.clicked.connect(self._on_capture_button_clicked)
         self._layout.addWidget(self._capture_button)
+        
+        self._save_button = QtWidgets.QPushButton("Save Capture")
+        self._save_button.setFixedHeight(30)
+        self._save_button.clicked.connect(self._on_save_button_clicked)
+        self._layout.addWidget(self._save_button)
 
-    def _on_button_clicked(self):
+    def _on_capture_button_clicked(self):
         pixmap = CaptureUtils.capture_active_view(r"D:\panel_capture.jpg")
         self._capture_label.setPixmap(pixmap)
-
+        
+    def _on_save_button_clicked(self):
+        self._capture_label.savePixmap(r"D:\panel_capture_saved.jpg")
 
 def main():
     maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
